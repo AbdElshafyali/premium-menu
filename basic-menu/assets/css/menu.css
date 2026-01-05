@@ -1,156 +1,174 @@
-/* ==================== Premium Menu UI Styles (Specific Version) ==================== */
+/* ==================== Rich Cafe: Spatial Fluidity System ==================== */
 :root {
-    --accent: #EAB308;
-    --bg: #0A0A0A;
-    --surface: #161616;
+    --gold: #D4AF37;
+    --obsidian: #0C0C0D;
+    --surface: #161617;
+    --accent-glow: rgba(212, 175, 55, 0.15);
 }
 
 body {
-    background-color: var(--bg);
+    background-color: var(--obsidian);
     color: white;
     font-family: 'Cairo', sans-serif;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
+/* Base Utility */
 .font-inter {
     font-family: 'Inter', sans-serif;
 }
 
-/* Custom Scrollbar Hide */
 ::-webkit-scrollbar {
     display: none;
 }
 
-/* Radial Arc Styling */
-.radial-container {
+/* Background Depth Glows */
+.bg-glow {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 220px;
-    z-index: 50;
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.arc-visual {
-    position: absolute;
-    bottom: -180px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150vw;
-    height: 350px;
-    background: rgba(17, 17, 17, 0.95);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 100%;
-    box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.8);
-    pointer-events: auto;
-}
-
-.nav-wrapper {
-    position: absolute;
-    bottom: 30px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    pointer-events: auto;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 0 45vw;
-}
-
-.nav-item {
-    scroll-snap-align: center;
-    flex-shrink: 0;
-    width: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    cursor: pointer;
-    position: relative;
-}
-
-.nav-item.active .icon-box {
-    transform: translateY(-25px) scale(1.4);
-    background: rgba(234, 179, 8, 0.15);
-    filter: grayscale(0);
-}
-
-.nav-item.active .label {
-    opacity: 1;
-    transform: translateY(-20px);
-}
-
-.icon-box {
-    width: 50px;
-    height: 50px;
+    width: 80vw;
+    height: 80vw;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    filter: grayscale(1) opacity(0.4);
-    transition: all 0.3s ease;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.6;
 }
 
-.label {
-    position: absolute;
-    top: -5px;
+/* Spine Navigation */
+#navSpine {
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.spine-item {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.4s ease;
+}
+
+.spine-dot {
+    width: 6px;
+    height: 6px;
+    background: white;
+    opacity: 0.2;
+    border-radius: 50%;
+    transition: all 0.4s ease;
+}
+
+.spine-label {
+    font-family: 'Inter', sans-serif;
     font-size: 10px;
     font-weight: 900;
-    color: var(--accent);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    opacity: 0;
-    transition: all 0.3s ease;
+    letter-spacing: 0.3em;
+    color: white;
+    opacity: 0.15;
     white-space: nowrap;
+    transform: translateX(10px);
+    transition: all 0.4s ease;
 }
 
-/* Product Card Gradient Mask */
-.card-mask-rtl {
-    background: linear-gradient(to right, transparent, var(--surface) 90%);
+.spine-item.active .spine-dot {
+    background: var(--gold);
+    opacity: 1;
+    transform: scale(2.5);
+    box-shadow: 0 0 15px var(--gold);
 }
 
-.card-mask-ltr {
-    background: linear-gradient(to left, transparent, var(--surface) 90%);
+.spine-item.active .spine-label {
+    opacity: 1;
+    color: var(--gold);
+    transform: translateX(0);
 }
 
-/* Modal Animation */
+/* Spatial Grid & Cards */
+#menuGrid {
+    perspective: 1000px;
+}
+
+.product-card {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background: var(--surface);
+    border-radius: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-content {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.product-info {
+    flex: 1.2;
+    padding: 2.5rem;
+    z-index: 10;
+}
+
+.product-img-container {
+    flex: 0.8;
+    height: 100%;
+    position: relative;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+[dir="ltr"] .product-img-container {
+    clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+}
+
+.product-img {
+    width: 100%;
+    height: 100%;
+    object-cover: cover;
+    transition: transform 8s linear;
+}
+
+.product-card:active {
+    transform: scale(0.96);
+}
+
+/* Cinematic Modal */
 #productModal {
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+    transition: opacity 0.5s ease;
+    background: rgba(12, 12, 13, 0.95);
+    backdrop-filter: blur(25px);
 }
 
 #productModal.hidden-state {
-    transform: translateY(100%);
     opacity: 0;
     pointer-events: none;
 }
 
-.bg-glow {
-    position: fixed;
-    width: 50vw;
-    height: 50vw;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(234, 179, 8, 0.1) 0%, transparent 70%);
-    filter: blur(60px);
-    z-index: -1;
-    pointer-events: none;
+.animate-content {
+    opacity: 0;
+    transform: translateY(30px);
 }
 
-/* Loading Spinner for Dynamic Load */
+#productModal:not(.hidden-state) .animate-content {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1) 0.2s;
+}
+
+/* Loading Spinner */
 .spinner {
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: var(--accent);
+    border: 2px solid rgba(212, 175, 55, 0.1);
+    border-top-color: var(--gold);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 0.8s linear infinite;
-    margin: 4rem auto;
+    width: 45px;
+    height: 45px;
+    animation: spin 1s linear infinite;
+    margin: 5rem auto;
 }
 
 @keyframes spin {

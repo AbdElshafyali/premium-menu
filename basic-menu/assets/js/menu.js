@@ -1,5 +1,5 @@
 /**
- * Premium Digital Menu Logic (Dynamic Integrated Version)
+ * Rich Cafe: Spatial Fluidity Logic (GSAP Optimized)
  */
 
 // --- STATE ---
@@ -11,97 +11,137 @@ let CATEGORIES = [];
 let ALL_PRODUCTS = [];
 let currentLang = 'ar';
 let currentCat = null;
+let isTransitioning = false;
 
 // --- DOM ELEMENTS ---
 const menuGrid = document.getElementById('menuGrid');
-const navWrapper = document.getElementById('navWrapper');
+const navSpine = document.getElementById('navSpine');
 const langToggle = document.getElementById('langToggle');
 const productModal = document.getElementById('productModal');
 
 // --- INITIALIZATION ---
 window.onload = async () => {
     if (!restaurantId) {
-        document.body.innerHTML = '<div class="min-h-screen bg-black flex items-center justify-center"><h1>❌ رابط المنيو غير صالح</h1></div>';
+        document.body.innerHTML = '<div class="min-h-screen bg-[#0C0C0D] flex items-center justify-center"><h1>❌ رابط المنيو غير صالح</h1></div>';
         return;
     }
 
     await loadData();
     initUI();
+
+    // Smooth entry animations
+    if (window.gsap) {
+        gsap.from('header', { y: -100, opacity: 0, duration: 1.2, ease: "expo.out" });
+        gsap.from('#navSpine', { x: 100, opacity: 0, duration: 1.2, delay: 0.3, ease: "expo.out" });
+    }
 };
 
 async function loadData() {
-    // 1. Fetch Restaurant Settings
-    const { data: resData } = await RestaurantService.getRestaurantById(restaurantId);
-    if (!resData) return;
-    restaurant = resData;
-    currentLang = restaurant.default_language || 'ar';
+    try {
+        const { data: resData } = await RestaurantService.getRestaurantById(restaurantId);
+        if (!resData) return;
+        restaurant = resData;
+        currentLang = restaurant.default_language || 'ar';
 
-    // 2. Fetch Categories & Products
-    const [catsRes, prodsRes] = await Promise.all([
-        CategoryService.getCategories(restaurantId, true),
-        ProductService.getProducts(restaurantId)
-    ]);
+        const [catsRes, prodsRes] = await Promise.all([
+            CategoryService.getCategories(restaurantId, true),
+            ProductService.getProducts(restaurantId)
+        ]);
 
-    if (catsRes.data) CATEGORIES = catsRes.data;
-    if (prodsRes.data) ALL_PRODUCTS = prodsRes.data;
+        if (catsRes.data) CATEGORIES = catsRes.data;
+        if (prodsRes.data) ALL_PRODUCTS = prodsRes.data;
 
-    // Set initial category
-    if (CATEGORIES.length > 0) {
-        currentCat = CATEGORIES[0].id;
+        if (CATEGORIES.length > 0) currentCat = CATEGORIES[0].id;
+    } catch (err) {
+        console.error("Error loading data:", err);
     }
 }
 
 function initUI() {
     updateGlobalText();
-    renderNav();
-    renderItems();
-    setupNavInteraction();
+    renderSpine();
+    renderItems(true); // Initial render without delay
 }
 
 function updateGlobalText() {
-    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    const isAr = currentLang === 'ar';
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
     document.documentElement.lang = currentLang;
 
-    document.getElementById('brandName').innerText = restaurant.name;
-    document.getElementById('brandSub').innerText = currentLang === 'ar' ? 'بيتزا وقهوة مختصة' : 'Pizza & Specialty Coffee';
-    document.getElementById('pageTitle').innerText = `${restaurant.name} - Digital Menu`;
-    langToggle.innerText = currentLang === 'ar' ? 'English' : 'عربي';
+    document.getElementById('brandName').innerText = "RICH CAFE";
+    document.getElementById('brandSub').innerText = isAr ? 'مساحة فنون الطهي التجريبية' : 'Experimental Culinary Space';
+    document.getElementById('pageTitle').innerText = `RICH CAFE - Digital Experience`;
+    langToggle.innerText = isAr ? 'English' : 'عربي';
+
+    // Spine position adjustment
+    if (navSpine) {
+        navSpine.style.right = isAr ? '0' : 'auto';
+        navSpine.style.left = isAr ? 'auto' : '0';
+        navSpine.classList.toggle('items-end', isAr);
+        navSpine.classList.toggle('items-start', !isAr);
+    }
 }
 
-// --- RENDERING ---
+// --- RENDERING & ANIMATION ---
 
-function renderNav() {
-    navWrapper.innerHTML = CATEGORIES.map(cat => {
+function renderSpine() {
+    if (!navSpine) return;
+    navSpine.innerHTML = CATEGORIES.map(cat => {
         const name = currentLang === 'ar' ? cat.name : (cat.name_en || cat.name);
         return `
-            <div class="nav-item ${cat.id === currentCat ? 'active' : ''}" data-id="${cat.id}">
-                <span class="label">${name}</span>
-                <div class="icon-box">${cat.icon || '📂'}</div>
+            <div class="spine-item ${cat.id === currentCat ? 'active' : ''}" data-id="${cat.id}">
+                <span class="spine-label ${currentLang === 'ar' ? 'ml-4' : 'mr-4'}">${name}</span>
+                <div class="spine-dot"></div>
             </div>
         `;
     }).join('');
 
-    document.querySelectorAll('.nav-item').forEach(item => {
+    document.querySelectorAll('.spine-item').forEach(item => {
         item.addEventListener('click', () => switchCategory(item.dataset.id));
     });
 }
 
 function switchCategory(catId) {
-    if (currentCat === catId) return;
+    if (currentCat === catId || isTransitioning) return;
+    isTransitioning = true;
+
+    const prevCat = currentCat;
     currentCat = catId;
 
-    // Smooth transition
-    renderNav();
-    renderItems();
+    // 1. Spine Update
+    document.querySelectorAll('.spine-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.id === catId);
+    });
 
-    // Scroll selected item into view
-    const activeItem = document.querySelector(`.nav-item[data-id="${catId}"]`);
-    if (activeItem) {
-        activeItem.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (!window.gsap) {
+        renderItems(true);
+        isTransitioning = false;
+        return;
     }
+
+    // 2. Scene Transition
+    const tl = gsap.timeline({
+        onComplete: () => { isTransitioning = false; }
+    });
+
+    tl.to('#menuGrid, #categoryHeader', {
+        opacity: 0,
+        y: prevCat > catId ? 30 : -30,
+        duration: 0.3,
+        ease: "power2.inOut"
+    });
+
+    tl.add(() => {
+        renderItems();
+    });
+
+    tl.fromTo('#menuGrid, #categoryHeader',
+        { opacity: 0, y: prevCat > catId ? -30 : 30 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }
+    );
 }
 
-function renderItems() {
+function renderItems(immediate = false) {
     const catData = CATEGORIES.find(c => c.id === currentCat);
     if (!catData) return;
 
@@ -114,8 +154,8 @@ function renderItems() {
 
     if (items.length === 0) {
         menuGrid.innerHTML = `
-            <div class="py-24 text-center opacity-40 uppercase tracking-widest text-sm">
-                ${currentLang === 'ar' ? 'قريباً في القائمة' : 'Coming Soon'}
+            <div class="py-24 text-center opacity-40 uppercase tracking-[0.5em] text-xs font-black">
+                ${currentLang === 'ar' ? 'رحلة قادمة قريباً' : 'Journey Coming Soon'}
             </div>
         `;
         return;
@@ -124,56 +164,43 @@ function renderItems() {
     menuGrid.innerHTML = items.map((item, idx) => {
         const name = currentLang === 'ar' ? item.name : (item.name_en || item.name);
         const desc = currentLang === 'ar' ? (item.description || '') : (item.description_en || item.description || '');
-        const currency = currentLang === 'ar' ? 'ج.م' : 'EGP';
+        const currency = currentLang === 'ar' ? 'ر.س' : 'SAR';
+
+        const sideClass = idx % 2 === 0 ? 'translate-x-2' : '-translate-x-2';
 
         return `
-            <div class="product-card h-40 rounded-[2rem] overflow-hidden bg-[#161616] border border-white/5 active:scale-[0.97] transition-all cursor-pointer shadow-2xl relative" 
+            <div class="product-card ${sideClass} opacity-0" 
                  onclick="openProductDetails('${item.id}')">
-                <div class="absolute inset-0 flex ${currentLang === 'ar' ? 'flex-row-reverse' : 'flex-row'}">
-                    <div class="flex-1 p-6 flex flex-col justify-between z-10 relative">
-                        <div>
-                            <h4 class="text-lg font-black leading-tight">${name}</h4>
-                            <p class="text-white/30 text-[10px] line-clamp-2 mt-1 font-medium leading-relaxed">${desc}</p>
-                        </div>
-                        <div class="text-xl font-black text-[#EAB308]">
+                <div class="card-content">
+                    <div class="product-info">
+                        <h4 class="text-xl font-black leading-tight mb-2 uppercase tracking-tighter">${name}</h4>
+                        <p class="text-white/20 text-[9px] line-clamp-2 font-medium max-w-[90%]">${desc}</p>
+                        <div class="text-xl font-black text-[#D4AF37] mt-3">
                             ${item.price} 
-                            <span class="text-[10px] opacity-40 uppercase">${currency}</span>
+                            <span class="text-[8px] opacity-40 uppercase tracking-widest">${currency}</span>
                         </div>
                     </div>
-                    <div class="w-[45%] relative">
-                        <img src="${item.image || '../assets/images/placeholder.png'}" class="w-full h-full object-cover grayscale-[0.2]" alt="${name}">
-                        <div class="absolute inset-0 ${currentLang === 'ar' ? 'card-mask-rtl' : 'card-mask-ltr'}"></div>
+                    <div class="product-img-container">
+                        <img src="${item.image || 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?q=80&w=1000'}" 
+                             class="product-img h-full w-full object-cover" alt="${name}">
                     </div>
                 </div>
             </div>
         `;
     }).join('');
-}
 
-function setupNavInteraction() {
-    let isScrolling;
-    navWrapper.addEventListener('scroll', () => {
-        window.clearTimeout(isScrolling);
-        isScrolling = setTimeout(() => {
-            const wrapperRect = navWrapper.getBoundingClientRect();
-            const centerX = wrapperRect.left + wrapperRect.width / 2;
-            let closestId = currentCat;
-            let minDistance = Infinity;
-
-            document.querySelectorAll('.nav-item').forEach(item => {
-                const rect = item.getBoundingClientRect();
-                const distance = Math.abs(centerX - (rect.left + rect.width / 2));
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestId = item.dataset.id;
-                }
-            });
-
-            if (closestId && closestId !== currentCat) {
-                switchCategory(closestId);
-            }
-        }, 150);
-    });
+    if (window.gsap && !immediate) {
+        gsap.to('.product-card', {
+            opacity: 1,
+            x: 0,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+    } else {
+        const cards = document.querySelectorAll('.product-card');
+        cards.forEach(c => { c.style.opacity = '1'; c.style.transform = 'none'; });
+    }
 }
 
 // --- UI INTERACTION ---
@@ -183,9 +210,9 @@ window.openProductDetails = function (id) {
     if (!item) return;
 
     const cat = CATEGORIES.find(c => c.id === item.category_id);
-    const currency = currentLang === 'ar' ? 'ج.م' : 'EGP';
+    const currency = currentLang === 'ar' ? 'ر.س' : 'SAR';
 
-    document.getElementById('modalImg').src = item.image || '../assets/images/placeholder.png';
+    document.getElementById('modalImg').src = item.image || 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?q=80&w=1000';
     document.getElementById('modalTitle').innerText = currentLang === 'ar' ? item.name : (item.name_en || item.name);
     document.getElementById('modalCat').innerText = currentLang === 'ar' ? (cat?.name || '') : (cat?.name_en || cat?.name || '');
     document.getElementById('modalDesc').innerText = currentLang === 'ar' ? (item.description || '') : (item.description_en || item.description || '');
@@ -195,6 +222,11 @@ window.openProductDetails = function (id) {
 
     productModal.classList.remove('hidden-state');
     document.body.style.overflow = 'hidden';
+
+    if (window.gsap) {
+        gsap.from('#modalHero img', { scale: 1.3, duration: 1.5, ease: "expo.out" });
+        gsap.from('.animate-content > *', { opacity: 0, y: 20, duration: 0.8, stagger: 0.1, ease: "power2.out", delay: 0.2 });
+    }
 };
 
 window.closeModal = function () {
@@ -203,13 +235,26 @@ window.closeModal = function () {
 };
 
 langToggle.addEventListener('click', () => {
-    currentLang = currentLang === 'ar' ? 'en' : 'ar';
-    updateGlobalText();
-    renderNav();
-    renderItems();
+    if (window.gsap) {
+        gsap.to('#mobileOverlay', {
+            opacity: 1,
+            duration: 0.3,
+            onComplete: () => {
+                currentLang = currentLang === 'ar' ? 'en' : 'ar';
+                updateGlobalText();
+                renderSpine();
+                renderItems(true);
+                gsap.to('#mobileOverlay', { opacity: 0, duration: 0.5, delay: 0.1 });
+            }
+        });
+    } else {
+        currentLang = currentLang === 'ar' ? 'en' : 'ar';
+        updateGlobalText();
+        renderSpine();
+        renderItems(true);
+    }
 });
 
-// Close modal on escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
 });

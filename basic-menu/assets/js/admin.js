@@ -60,7 +60,7 @@ function updateRestaurantUI() {
         document.getElementById('headerLogo').src = currentRestaurant.logo;
     }
 
-    const menuUrl = `${window.location.origin}/customer/menu.html?r=${currentRestaurant.id}`;
+    const menuUrl = `${window.location.origin}/premium-menu/menu/?r=${currentRestaurant.id}`;
     document.getElementById('menuUrl').value = menuUrl;
     generateQRCode(menuUrl);
 }
@@ -142,7 +142,7 @@ function renderProducts(filter = '') {
     filteredProducts.forEach(product => {
         const card = `
             <div class="item-card product-card">
-                <img src="${product.image || '../assets/images/placeholder.png'}" alt="${product.name}">
+                <img src="${product.image || 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?q=80&w=1000'}" alt="${product.name}">
                 <div class="item-header">
                     <div>
                         <div class="item-title">${product.name}</div>
@@ -310,7 +310,7 @@ window.showProductModal = function (product = null) {
             <div class="form-group">
                 <label>🖼️ صورة المنتج</label>
                 <div class="image-upload">
-                    <img src="${product?.image || '../assets/images/placeholder.png'}" id="modalProductPreview">
+                    <img src="${product?.image || 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?q=80&w=1000'}" id="modalProductPreview">
                     <input type="file" id="modalProductInput" accept="image/*" style="display:none" onchange="previewProductImage(this)">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalProductInput').click()">📤 تغيير الصورة</button>
                 </div>

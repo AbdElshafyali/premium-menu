@@ -14,8 +14,8 @@
         rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="../assets/css/styles.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="/premium-menu/assets/css/styles.css">
+    <link rel="stylesheet" href="/premium-menu/assets/css/admin.css">
 </head>
 
 <body>
@@ -24,11 +24,11 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo-section">
-                    <img src="../assets/images/logo.png" alt="Logo" class="logo" id="headerLogo">
+                    <img src="/premium-menu/assets/images/logo.png" alt="Logo" class="logo" id="headerLogo">
                     <h1 id="restaurantName">لوحة التحكم</h1>
                 </div>
                 <div class="header-actions">
-                    <a href="../customer/menu.html" target="_blank" class="btn btn-secondary">
+                    <a href="/premium-menu/menu/" target="_blank" class="btn btn-secondary">
                         عرض المنيو
                     </a>
                     <button class="btn btn-danger" id="logoutBtn">
@@ -62,7 +62,7 @@
                         <div class="form-group">
                             <label>🖼️ شعار المطعم</label>
                             <div class="image-upload">
-                                <img src="../assets/images/placeholder.png" alt="Logo" id="logoPreview">
+                                <img src="/premium-menu/assets/images/placeholder.png" alt="Logo" id="logoPreview">
                                 <input type="file" id="logoInput" accept="image/*">
                                 <button type="button" class="btn btn-primary"
                                     onclick="document.getElementById('logoInput').click()">
@@ -136,15 +136,15 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="../config/supabase.js"></script>
+    <script src="/premium-menu/config/supabase.js"></script>
 
     <!-- Services -->
-    <script src="../assets/js/services/api.service.js"></script>
-    <script src="../assets/js/services/restaurant.service.js"></script>
-    <script src="../assets/js/services/category.service.js"></script>
-    <script src="../assets/js/services/product.service.js"></script>
+    <script src="/premium-menu/assets/js/services/api.service.js"></script>
+    <script src="/premium-menu/assets/js/services/restaurant.service.js"></script>
+    <script src="/premium-menu/assets/js/services/category.service.js"></script>
+    <script src="/premium-menu/assets/js/services/product.service.js"></script>
 
-    <script src="../assets/js/admin.js"></script>
+    <script src="/premium-menu/assets/js/admin.js"></script>
 </body>
 
 </html>
