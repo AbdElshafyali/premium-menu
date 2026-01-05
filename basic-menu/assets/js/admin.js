@@ -71,7 +71,7 @@ function updateRestaurantUI() {
         document.getElementById('headerLogo').src = currentRestaurant.logo;
     }
 
-    const menuUrl = `${window.location.origin}/premium-menu/menu/?r=${currentRestaurant.id}`;
+    const menuUrl = `${window.location.origin}/menu/?r=${currentRestaurant.id}`;
     document.getElementById('menuUrl').value = menuUrl;
     generateQRCode(menuUrl);
 
