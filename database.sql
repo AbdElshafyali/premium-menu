@@ -72,24 +72,47 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
 -- restaurant_admins Policies
+-- 1. Function to check if user is admin (breaks recursion)
+CREATE OR REPLACE FUNCTION public.is_restaurant_admin(target_restaurant_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.restaurant_admins
+    WHERE restaurant_id = target_restaurant_id
+    AND email = (auth.jwt() ->> 'email')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 2. Function to check if user is owner (breaks recursion)
+CREATE OR REPLACE FUNCTION public.is_restaurant_owner(target_restaurant_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.restaurant_admins
+    WHERE restaurant_id = target_restaurant_id
+    AND email = (auth.jwt() ->> 'email')
+    AND role = 'owner'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 3. Policies
+CREATE POLICY "Users can view their own entries"
+ON restaurant_admins FOR SELECT
+TO authenticated
+USING (email = (auth.jwt() ->> 'email'));
+
 CREATE POLICY "Admins can view colleagues"
 ON restaurant_admins FOR SELECT
-USING (
-  auth.jwt() ->> 'email' IN (
-    SELECT email FROM restaurant_admins WHERE restaurant_id = restaurant_admins.restaurant_id
-  )
-);
+TO authenticated
+USING (is_restaurant_admin(restaurant_id));
 
 CREATE POLICY "Owners can manage admins"
 ON restaurant_admins FOR ALL
-USING (
-  EXISTS (
-    SELECT 1 FROM restaurant_admins AS ra
-    WHERE ra.restaurant_id = restaurant_admins.restaurant_id 
-    AND ra.email = auth.jwt() ->> 'email' 
-    AND ra.role = 'owner'
-  )
-);
+TO authenticated
+USING (is_restaurant_owner(restaurant_id))
+WITH CHECK (is_restaurant_owner(restaurant_id));
 
 -- Restaurants Policies
 CREATE POLICY "Allow public read restaurants"
@@ -98,11 +121,8 @@ USING (true);
 
 CREATE POLICY "Admins can update their restaurant"
 ON restaurants FOR UPDATE
-USING (
-  auth.jwt() ->> 'email' IN (
-    SELECT email FROM restaurant_admins WHERE restaurant_id = id
-  )
-);
+TO authenticated
+USING (is_restaurant_admin(id));
 
 -- Categories Policies
 CREATE POLICY "Allow public read categories"
@@ -111,11 +131,8 @@ USING (true);
 
 CREATE POLICY "Admins can manage categories"
 ON categories FOR ALL
-USING (
-  auth.jwt() ->> 'email' IN (
-    SELECT email FROM restaurant_admins WHERE restaurant_id = categories.restaurant_id
-  )
-);
+TO authenticated
+USING (is_restaurant_admin(restaurant_id));
 
 -- Products Policies
 CREATE POLICY "Allow public read products"
@@ -124,11 +141,8 @@ USING (true);
 
 CREATE POLICY "Admins can manage products"
 ON products FOR ALL
-USING (
-  auth.jwt() ->> 'email' IN (
-    SELECT email FROM restaurant_admins WHERE restaurant_id = products.restaurant_id
-  )
-);
+TO authenticated
+USING (is_restaurant_admin(restaurant_id));
 
 -- ==================== Functions & Triggers ====================
 
