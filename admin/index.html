@@ -14,8 +14,8 @@
         rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/premium-menu/assets/css/styles.css">
-    <link rel="stylesheet" href="/premium-menu/assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
 </head>
 
 <body>
@@ -106,6 +106,19 @@
                 </div>
             </section>
 
+            <!-- User Management (Only for Owners) -->
+            <section class="admin-section" id="adminManagementSection" style="display: none;">
+                <div class="section-header">
+                    <h2>👥 إدارة الصلاحيات</h2>
+                    <button class="btn btn-primary" id="addAdminBtn">➕ إضافة مسؤول</button>
+                </div>
+                <div class="card">
+                    <div id="adminsList" class="table-responsive">
+                        <!-- Admins list will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
             <!-- QR Code & Share -->
             <section class="admin-section">
                 <h2>📱 مشاركة المنيو</h2>
@@ -136,15 +149,15 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="/premium-menu/config/supabase.js"></script>
+    <script src="/config/supabase.js"></script>
 
     <!-- Services -->
-    <script src="/premium-menu/assets/js/services/api.service.js"></script>
-    <script src="/premium-menu/assets/js/services/restaurant.service.js"></script>
-    <script src="/premium-menu/assets/js/services/category.service.js"></script>
-    <script src="/premium-menu/assets/js/services/product.service.js"></script>
+    <script src="/assets/js/services/api.service.js"></script>
+    <script src="/assets/js/services/restaurant.service.js"></script>
+    <script src="/assets/js/services/category.service.js"></script>
+    <script src="/assets/js/services/product.service.js"></script>
 
-    <script src="/premium-menu/assets/js/admin.js"></script>
+    <script src="/assets/js/admin.js"></script>
 </body>
 
 </html>

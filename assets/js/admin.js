@@ -14,18 +14,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
 });
 
+let currentUserRole = 'editor';
+
 // ==================== Authentication ====================
 async function checkAuth() {
     const { data: { user } } = await window.supabaseClient.auth.getUser();
     if (!user) {
-        window.location.href = 'login/';
+        window.location.href = 'login.html';
         return;
     }
 }
 
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     await window.supabaseClient.auth.signOut();
-    window.location.href = 'login/';
+    window.location.href = 'login.html';
 });
 
 // ==================== Data Initialization ====================
@@ -33,18 +35,27 @@ async function initializeData() {
     const { data: { user } } = await window.supabaseClient.auth.getUser();
 
     // Load Restaurant
-    const { data: restaurant, error: rError } = await RestaurantService.getRestaurantByEmail(user.email);
-    if (restaurant) {
-        currentRestaurant = restaurant;
-        updateRestaurantUI();
+    try {
+        const restaurant = await RestaurantService.getRestaurantByEmail(user.email);
+        if (restaurant) {
+            currentRestaurant = restaurant;
 
-        // Load Details
-        await Promise.all([
-            loadCategories(),
-            loadProducts()
-        ]);
-    } else {
-        console.error('Restaurant not found');
+            // Get current user's role from the admins table
+            const { data: admins } = await RestaurantService.getAdmins(currentRestaurant.id);
+            const currentAdmin = admins.find(a => a.email === user.email);
+            currentUserRole = currentAdmin ? currentAdmin.role : 'editor';
+
+            updateRestaurantUI();
+
+            // Load Details
+            await Promise.all([
+                loadCategories(),
+                loadProducts(),
+                currentUserRole === 'owner' ? loadAdmins() : Promise.resolve()
+            ]);
+        }
+    } catch (error) {
+        console.error('Restaurant not found or error loading data:', error);
     }
 }
 
@@ -63,6 +74,12 @@ function updateRestaurantUI() {
     const menuUrl = `${window.location.origin}/menu/?r=${currentRestaurant.id}`;
     document.getElementById('menuUrl').value = menuUrl;
     generateQRCode(menuUrl);
+
+    // Show/Hide Administrative Sections
+    const adminSection = document.getElementById('adminManagementSection');
+    if (adminSection) {
+        adminSection.style.display = currentUserRole === 'owner' ? 'block' : 'none';
+    }
 }
 
 // ==================== Categories ====================
@@ -163,6 +180,92 @@ function renderProducts(filter = '') {
     });
 }
 
+// ==================== User Management ====================
+async function loadAdmins() {
+    const { data, error } = await RestaurantService.getAdmins(currentRestaurant.id);
+    if (!error) {
+        renderAdmins(data);
+    }
+}
+
+function renderAdmins(admins) {
+    const container = document.getElementById('adminsList');
+    if (!container) return;
+
+    container.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>البريد الإلكتروني</th>
+                    <th>الصلاحية</th>
+                    <th>تاريخ الإضافة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${admins.map(admin => `
+                    <tr>
+                        <td>${admin.email}</td>
+                        <td><span class="badge ${admin.role === 'owner' ? 'badge-primary' : 'badge-secondary'}">${admin.role === 'owner' ? 'مالك' : 'محرر'}</span></td>
+                        <td>${new Date(admin.created_at).toLocaleDateString('ar-EG')}</td>
+                        <td>
+                            ${admin.role !== 'owner' ? `<button class="btn btn-danger btn-sm" onclick="deleteAdmin('${admin.id}')">🗑️ حذف</button>` : '-'}
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+window.showAddAdminModal = function () {
+    const body = `
+        <form id="adminModalForm">
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="adminEmail" required placeholder="example@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>الصلاحية</label>
+                <select id="adminRole">
+                    <option value="editor">محرر (تعديل الأقسام والمنتجات)</option>
+                    <option value="manager">مدير (نفس صلاحيات المحرر)</option>
+                </select>
+            </div>
+        </form>
+    `;
+
+    const footer = `
+        <button class="btn btn-secondary" onclick="closeActiveModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="handleAdminAdd()">➕ إضافة</button>
+    `;
+
+    showModal('👥 إضافة مسؤول جديد', body, footer);
+}
+
+window.handleAdminAdd = async function () {
+    const email = document.getElementById('adminEmail').value;
+    const role = document.getElementById('adminRole').value;
+
+    if (!email) {
+        alert('يرجى إدخال البريد الإلكتروني');
+        return;
+    }
+
+    const { error } = await RestaurantService.addAdmin(currentRestaurant.id, email, role);
+    if (!error) {
+        closeActiveModal();
+        loadAdmins();
+    }
+}
+
+window.deleteAdmin = async function (id) {
+    if (confirm('هل أنت متأكد من حذف هذا المسؤول؟ لن يتمكن من الوصول للوحة التحكم مرة أخرى.')) {
+        const { error } = await RestaurantService.removeAdmin(id);
+        if (!error) loadAdmins();
+    }
+}
+
 // ==================== Forms & Listeners ====================
 function setupEventListeners() {
     // Restaurant Settings
@@ -198,6 +301,7 @@ function setupEventListeners() {
     // Add Buttons
     document.getElementById('addCategoryBtn')?.addEventListener('click', () => showCategoryModal());
     document.getElementById('addProductBtn')?.addEventListener('click', () => showProductModal());
+    document.getElementById('addAdminBtn')?.addEventListener('click', () => showAddAdminModal());
 
     // Share Actions
     document.getElementById('copyUrlBtn')?.addEventListener('click', () => {
@@ -331,8 +435,9 @@ window.showProductModal = function (product = null) {
             </div>
             <div class="form-group">
                 <label>القسم</label>
-                <input type="text" value="${categories.find(c => c.id === (product?.category_id || categories[0]?.id))?.name || ''}" readonly>
-                <input type="hidden" id="prodCategory" value="${product?.category_id || categories[0]?.id}">
+                <select id="prodCategory">
+                    ${categories.map(c => `<option value="${c.id}" ${product?.category_id === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
             </div>
             <div class="form-group">
                 <label>الوصف (عربي)</label>
