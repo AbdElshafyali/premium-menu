@@ -2,18 +2,18 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/admin",
-      "dest": "/admin/index.html"
+      "source": "/admin",
+      "destination": "/admin/index.html"
     },
     {
-      "src": "/admin/login",
-      "dest": "/admin/login/index.html"
+      "source": "/admin/login",
+      "destination": "/admin/login/index.html"
     },
     {
-      "src": "/menu",
-      "dest": "/menu/index.html"
+      "source": "/menu",
+      "destination": "/menu/index.html"
     }
   ]
 }
