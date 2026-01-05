@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">LA CASA - المنيو الإلكتروني</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@400;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/menu.css">
+</head>
+
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-background">
+        <div class="glow-top"></div>
+        <div class="glow-bottom"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="menu-header">
+        <div class="brand-section">
+            <h1 id="restaurantName">LA CASA</h1>
+            <span id="subBrand">Pizza & Specialty Coffee</span>
+        </div>
+        <button class="lang-toggle" id="langToggle">ENGLISH</button>
+    </header>
+
+    <!-- Main Content Stage -->
+    <main class="menu-main">
+        <!-- Category Transition Scene -->
+        <div id="categoryScene">
+            <div class="category-header">
+                <div class="category-title-bg" id="bgCatTitle">COFFEE</div>
+                <div class="category-icon" id="headerIcon">☕</div>
+                <h3 class="category-name" id="selectedCatArName">قهوة</h3>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be injected here -->
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Radial Arc Bottom Navigation -->
+    <div class="bottom-nav-container">
+        <!-- The Arc Visual -->
+        <div class="radial-arc"></div>
+
+        <!-- Dial Wrapper -->
+        <div class="dial-wrapper">
+            <div class="dial-items" id="tabsContainer">
+                <!-- Tabs will be injected here -->
+            </div>
+        </div>
+
+        <!-- Selection Glow -->
+        <div class="selection-glow"></div>
+    </div>
+
+    <!-- Premium Product Detail Modal -->
+    <div class="detail-modal" id="productModal">
+        <div class="modal-image-stage">
+            <img id="modalProductImage" src="" alt="">
+            <div
+                style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2), #000);">
+            </div>
+        </div>
+
+        <div class="modal-content-stage">
+            <button class="modal-close-btn" onclick="closeModal()">✕</button>
+
+            <span class="modal-badge" id="modalCategoryName">CATEGORY</span>
+            <h2 class="modal-title" id="modalProductName">PRODUCT NAME</h2>
+            <p class="modal-description" id="modalProductDesc">Product description goes here.</p>
+
+            <div class="modal-price-val">
+                <span id="modalProductPrice">100</span>
+                <small id="currencyLabel">ج.م</small>
+            </div>
+
+            <button class="add-to-cart-btn" id="orderBtn">إضافة للطلب</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config/supabase.js"></script>
+
+    <!-- Services -->
+    <script src="../assets/js/services/api.service.js"></script>
+    <script src="../assets/js/services/restaurant.service.js"></script>
+    <script src="../assets/js/services/category.service.js"></script>
+    <script src="../assets/js/services/product.service.js"></script>
+
+    <script src="../assets/js/menu.js"></script>
+</body>
+
+</html>

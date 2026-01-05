@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - المنيو الإلكتروني</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="../assets/images/logo.png" alt="Logo" class="logo" id="headerLogo">
+                    <h1 id="restaurantName">لوحة التحكم</h1>
+                </div>
+                <div class="header-actions">
+                    <a href="../customer/menu.html" target="_blank" class="btn btn-secondary">
+                        عرض المنيو
+                    </a>
+                    <button class="btn btn-danger" id="logoutBtn">
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="container">
+
+            <!-- Restaurant Settings -->
+            <section class="admin-section">
+                <h2>⚙️ إعدادات المطعم الأساسية</h2>
+                <div class="card">
+                    <form id="restaurantForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="nameAr">اسم المطعم (عربي)</label>
+                                <input type="text" id="nameAr" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nameEn">اسم المطعم (إنجليزي)</label>
+                                <input type="text" id="nameEn">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🖼️ شعار المطعم</label>
+                            <div class="image-upload">
+                                <img src="../assets/images/placeholder.png" alt="Logo" id="logoPreview">
+                                <input type="file" id="logoInput" accept="image/*">
+                                <button type="button" class="btn btn-primary"
+                                    onclick="document.getElementById('logoInput').click()">
+                                    📤 رفع صورة
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">💾 حفظ الإعدادات</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Categories Management -->
+            <section class="admin-section">
+                <div class="section-header">
+                    <h2>📂 إدارة الأقسام</h2>
+                    <button class="btn btn-primary" id="addCategoryBtn">➕ إضافة قسم</button>
+                </div>
+                <div id="categoriesList" class="items-grid">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Products Management -->
+            <section class="admin-section">
+                <div class="section-header">
+                    <h2>🍽️ إدارة المنتجات</h2>
+                    <button class="btn btn-primary" id="addProductBtn">➕ إضافة منتج</button>
+                </div>
+
+                <div class="filters">
+                    <select id="categoryFilter">
+                        <option value="">كل الأقسام</option>
+                    </select>
+                    <input type="text" id="searchProducts" placeholder="🔍 بحث...">
+                </div>
+
+                <div id="productsList" class="items-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </section>
+
+            <!-- QR Code & Share -->
+            <section class="admin-section">
+                <h2>📱 مشاركة المنيو</h2>
+                <div class="card">
+                    <div class="qr-section">
+                        <div class="qr-info">
+                            <label>🔗 الرابط المباشر:</label>
+                            <div class="url-box">
+                                <input type="text" id="menuUrl" readonly>
+                                <button class="btn btn-secondary" id="copyUrlBtn">📋 نسخ</button>
+                            </div>
+                        </div>
+                        <div class="qr-code">
+                            <label>📲 QR Code:</label>
+                            <div id="qrCodeContainer"></div>
+                            <button class="btn btn-primary" id="downloadQR">⬇️ تحميل</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Modals will be added here -->
+    <div id="modalContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="../config/supabase.js"></script>
+
+    <!-- Services -->
+    <script src="../assets/js/services/api.service.js"></script>
+    <script src="../assets/js/services/restaurant.service.js"></script>
+    <script src="../assets/js/services/category.service.js"></script>
+    <script src="../assets/js/services/product.service.js"></script>
+
+    <script src="../assets/js/admin.js"></script>
+</body>
+
+</html>
