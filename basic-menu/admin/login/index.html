@@ -139,6 +139,7 @@
 
         // Check if already logged in
         (async () => {
+            console.log('Supabase Client Initialized with URL:', supabaseClient.supabaseUrl);
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (user) {
                 window.location.href = '../';
