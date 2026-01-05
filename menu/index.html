@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">RICH CAFE - Digital Experience</title>
+
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@400;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/menu.css">
+</head>
+
+<body class="antialiased">
+
+    <!-- Background Elements -->
+    <div class="bg-glow top-[-10%] left-[-10%]"></div>
+    <div class="bg-glow bottom-[-10%] right-[-10%]"></div>
+
+    <!-- Header -->
+    <header
+        class="fixed top-0 left-0 right-0 z-50 p-8 flex justify-between items-center bg-black/20 backdrop-blur-xl border-b border-white/5">
+        <div class="flex flex-col">
+            <h1 id="brandName"
+                class="text-3xl font-black tracking-tighter text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                RICH CAFE</h1>
+            <span id="brandSub" class="text-[9px] uppercase tracking-[0.4em] text-white/40 mt-1">Experimental Culinary
+                Space</span>
+        </div>
+        <button id="langToggle"
+            class="px-6 py-2.5 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 transition-all hover:bg-white/10 active:scale-90">
+            English
+        </button>
+    </header>
+
+    <!-- Navigation Spine (Right Edge) -->
+    <div id="navSpine" class="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex flex-col items-end gap-12 pr-6">
+        <!-- Labels injected via JS -->
+    </div>
+
+    <!-- Main Content (Spatial Scenes) -->
+    <main id="sceneContainer" class="relative overflow-x-hidden min-h-screen pt-40 pb-32 px-6 max-w-2xl mx-auto">
+        <!-- Category Title Header -->
+        <div id="categoryHeader" class="relative mb-16 text-center">
+            <h2 id="bgCategoryTitle"
+                class="text-[10vw] font-black opacity-[0.02] absolute top-1/2 -translate-y-1/2 left-0 right-0 overflow-hidden whitespace-nowrap select-none tracking-widest leading-none">
+            </h2>
+            <div class="flex flex-col items-center gap-2 relative z-10">
+                <div id="activeCatIconContainer"
+                    class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-4xl mb-4 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                    <span id="activeCatIcon"></span>
+                </div>
+                <h3 id="activeCatTitle" class="text-3xl font-black text-[#D4AF37] tracking-tight"></h3>
+                <div
+                    class="w-12 h-1 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent rounded-full mt-2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Container -->
+        <div id="menuGrid" class="flex flex-col gap-24 relative">
+            <div class="spinner"></div>
+        </div>
+    </main>
+
+    <!-- Language-based Directional Fixer (JS controlled) -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-[#0C0C0D] z-[60] pointer-events-none opacity-0"></div>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="fixed inset-0 z-[100] bg-black hidden-state flex flex-col">
+        <div id="modalHero" class="absolute inset-0 h-[65%] overflow-hidden">
+            <img id="modalImg" src="" class="w-full h-full object-cover opacity-60" alt="">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black"></div>
+        </div>
+
+        <div class="relative z-10 flex-1 flex flex-col justify-end p-8 pb-12">
+            <button onclick="closeModal()"
+                class="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20 text-white transition-all active:scale-90">
+                ✕
+            </button>
+
+            <div class="animate-content">
+                <span id="modalCat"
+                    class="text-[#EAB308] font-black text-xs uppercase tracking-[0.3em] block mb-3"></span>
+                <h2 id="modalTitle" class="text-4xl font-black mb-4"></h2>
+                <p id="modalDesc" class="text-white/50 text-base leading-relaxed mb-8 max-w-sm"></p>
+                <div class="text-4xl font-black text-[#EAB308] mb-8">
+                    <span id="modalPrice"></span> <span class="text-sm opacity-50" id="currencyLabel">ر.س</span>
+                </div>
+                <button
+                    class="w-full h-16 rounded-2xl bg-[#EAB308] text-black font-black flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                    id="orderBtn">
+                    إضافة للطلب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config/supabase.js"></script>
+
+    <!-- Services -->
+    <script src="../assets/js/services/api.service.js"></script>
+    <script src="../assets/js/services/restaurant.service.js"></script>
+    <script src="../assets/js/services/category.service.js"></script>
+    <script src="../assets/js/services/product.service.js"></script>
+
+    <!-- Main Logic -->
+    <script src="../assets/js/menu.js"></script>
+</body>
+
+</html>
