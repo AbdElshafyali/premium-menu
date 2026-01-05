@@ -9,14 +9,25 @@ CREATE TABLE restaurants (
   name TEXT NOT NULL,
   name_en TEXT,
   logo TEXT,
-  admin_email TEXT UNIQUE NOT NULL,
+  admin_email TEXT UNIQUE NOT NULL, -- Keep for backwards compatibility/migration
   default_language TEXT DEFAULT 'ar',
   working_hours JSONB DEFAULT '{"open": "09:00", "close": "23:00"}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 1.1 Restaurant Admins Table (New for Multi-User)
+CREATE TABLE restaurant_admins (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  role TEXT DEFAULT 'editor', -- 'owner', 'manager', 'editor'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(restaurant_id, email)
+);
+
 -- 2. Categories Table
+-- ... (rest of categories table)
 CREATE TABLE categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
@@ -50,33 +61,59 @@ CREATE INDEX idx_categories_order ON categories(restaurant_id, display_order);
 CREATE INDEX idx_products_restaurant ON products(restaurant_id);
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_available ON products(restaurant_id, is_available);
+CREATE INDEX idx_admins_email ON restaurant_admins(email);
 
 -- ==================== Row Level Security ====================
 
 -- Enable RLS
 ALTER TABLE restaurants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE restaurant_admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+
+-- restaurant_admins Policies
+CREATE POLICY "Admins can view colleagues"
+ON restaurant_admins FOR SELECT
+USING (
+  auth.jwt() ->> 'email' IN (
+    SELECT email FROM restaurant_admins WHERE restaurant_id = restaurant_admins.restaurant_id
+  )
+);
+
+CREATE POLICY "Owners can manage admins"
+ON restaurant_admins FOR ALL
+USING (
+  EXISTS (
+    SELECT 1 FROM restaurant_admins AS ra
+    WHERE ra.restaurant_id = restaurant_admins.restaurant_id 
+    AND ra.email = auth.jwt() ->> 'email' 
+    AND ra.role = 'owner'
+  )
+);
 
 -- Restaurants Policies
 CREATE POLICY "Allow public read restaurants"
 ON restaurants FOR SELECT
 USING (true);
 
-CREATE POLICY "Allow admin update own restaurant"
+CREATE POLICY "Admins can update their restaurant"
 ON restaurants FOR UPDATE
-USING (auth.jwt() ->> 'email' = admin_email);
+USING (
+  auth.jwt() ->> 'email' IN (
+    SELECT email FROM restaurant_admins WHERE restaurant_id = id
+  )
+);
 
 -- Categories Policies
 CREATE POLICY "Allow public read categories"
 ON categories FOR SELECT
 USING (true);
 
-CREATE POLICY "Allow admin manage categories"
+CREATE POLICY "Admins can manage categories"
 ON categories FOR ALL
 USING (
-  auth.jwt() ->> 'email' = (
-    SELECT admin_email FROM restaurants WHERE id = restaurant_id
+  auth.jwt() ->> 'email' IN (
+    SELECT email FROM restaurant_admins WHERE restaurant_id = categories.restaurant_id
   )
 );
 
@@ -85,15 +122,15 @@ CREATE POLICY "Allow public read products"
 ON products FOR SELECT
 USING (true);
 
-CREATE POLICY "Allow admin manage products"
+CREATE POLICY "Admins can manage products"
 ON products FOR ALL
 USING (
-  auth.jwt() ->> 'email' = (
-    SELECT admin_email FROM restaurants WHERE id = restaurant_id
+  auth.jwt() ->> 'email' IN (
+    SELECT email FROM restaurant_admins WHERE restaurant_id = products.restaurant_id
   )
 );
 
--- ==================== Functions ====================
+-- ==================== Functions & Triggers ====================
 
 -- Update timestamp function
 CREATE OR REPLACE FUNCTION update_updated_at()

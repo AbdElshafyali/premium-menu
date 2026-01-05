@@ -298,6 +298,39 @@
     color: var(--danger);
 }
 
+.badge-primary {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--primary);
+}
+
+.badge-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    color: var(--text-light);
+}
+
+/* ==================== Tables ==================== */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: var(--spacing-md);
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-table th {
+    font-weight: 700;
+    color: var(--text-light);
+    background: rgba(0, 0, 0, 0.02);
+}
+
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
     .header-content {
