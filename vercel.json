@@ -14,6 +14,10 @@
     {
       "source": "/menu",
       "destination": "/menu/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/admin/login/index.html"
     }
   ]
 }

@@ -20,14 +20,14 @@ let currentUserRole = 'editor';
 async function checkAuth() {
     const { data: { user } } = await window.supabaseClient.auth.getUser();
     if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = '/admin/login';
         return;
     }
 }
 
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     await window.supabaseClient.auth.signOut();
-    window.location.href = 'login.html';
+    window.location.href = '/admin/login';
 });
 
 // ==================== Data Initialization ====================
