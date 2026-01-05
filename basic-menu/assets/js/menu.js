@@ -1,200 +1,215 @@
 /**
- * Premium Customer Menu Logic
+ * Premium Digital Menu Logic (Dynamic Integrated Version)
  */
 
-// Global State
+// --- STATE ---
 const urlParams = new URLSearchParams(window.location.search);
 const restaurantId = urlParams.get('r');
 
 let restaurant = null;
-let categories = [];
-let products = [];
+let CATEGORIES = [];
+let ALL_PRODUCTS = [];
 let currentLang = 'ar';
-let selectedCategoryId = null;
+let currentCat = null;
 
-// Initialize
-document.addEventListener('DOMContentLoaded', async () => {
+// --- DOM ELEMENTS ---
+const menuGrid = document.getElementById('menuGrid');
+const navWrapper = document.getElementById('navWrapper');
+const langToggle = document.getElementById('langToggle');
+const productModal = document.getElementById('productModal');
+
+// --- INITIALIZATION ---
+window.onload = async () => {
     if (!restaurantId) {
-        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;"><h1>❌ الرابط غير صالح</h1></div>';
+        document.body.innerHTML = '<div class="min-h-screen bg-black flex items-center justify-center"><h1>❌ رابط المنيو غير صالح</h1></div>';
         return;
     }
 
-    await initializeApp();
-    setupEventListeners();
-});
+    await loadData();
+    initUI();
+};
 
-async function initializeApp() {
-    // 1. Load Restaurant Settings
+async function loadData() {
+    // 1. Fetch Restaurant Settings
     const { data: resData } = await RestaurantService.getRestaurantById(restaurantId);
     if (!resData) return;
-
     restaurant = resData;
     currentLang = restaurant.default_language || 'ar';
-    updateThemeAndMeta();
 
-    // 2. Load Categories & Products
+    // 2. Fetch Categories & Products
     const [catsRes, prodsRes] = await Promise.all([
         CategoryService.getCategories(restaurantId, true),
         ProductService.getProducts(restaurantId)
     ]);
 
-    if (catsRes.data) categories = catsRes.data;
-    if (prodsRes.data) products = prodsRes.data;
+    if (catsRes.data) CATEGORIES = catsRes.data;
+    if (prodsRes.data) ALL_PRODUCTS = prodsRes.data;
 
-    // 3. Set Default Category (First one)
-    if (categories.length > 0) {
-        selectedCategoryId = categories[0].id;
+    // Set initial category
+    if (CATEGORIES.length > 0) {
+        currentCat = CATEGORIES[0].id;
     }
-
-    renderMenu();
 }
 
-function updateThemeAndMeta() {
-    document.title = `${restaurant.name} - المنيو`;
-    document.getElementById('restaurantName').textContent = restaurant.name;
-    document.getElementById('subBrand').textContent = currentLang === 'ar' ? 'بيتزا وقهوة مختصة' : 'Pizza & Specialty Coffee';
+function initUI() {
+    updateGlobalText();
+    renderNav();
+    renderItems();
+    setupNavInteraction();
+}
 
-    document.documentElement.lang = currentLang;
+function updateGlobalText() {
     document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-    document.getElementById('langToggle').textContent = currentLang === 'ar' ? 'ENGLISH' : 'عربي';
+    document.documentElement.lang = currentLang;
+
+    document.getElementById('brandName').innerText = restaurant.name;
+    document.getElementById('brandSub').innerText = currentLang === 'ar' ? 'بيتزا وقهوة مختصة' : 'Pizza & Specialty Coffee';
+    document.getElementById('pageTitle').innerText = `${restaurant.name} - Digital Menu`;
+    langToggle.innerText = currentLang === 'ar' ? 'English' : 'عربي';
 }
 
-// ==================== Rendering ====================
+// --- RENDERING ---
 
-function renderMenu() {
-    renderTabs();
-    updateCategoryHeader();
-    renderProducts();
-}
-
-function renderTabs() {
-    const container = document.getElementById('tabsContainer');
-    container.innerHTML = '';
-
-    categories.forEach(cat => {
-        const isActive = selectedCategoryId === cat.id;
-        const btn = document.createElement('button');
-        btn.className = `dial-item ${isActive ? 'active' : ''}`;
-        btn.onclick = () => switchCategory(cat.id);
-
-        btn.innerHTML = `
-            <div class="dial-icon">${cat.icon || '📂'}</div>
-            <span class="dial-label">${currentLang === 'ar' ? cat.name : (cat.name_en || cat.name)}</span>
+function renderNav() {
+    navWrapper.innerHTML = CATEGORIES.map(cat => {
+        const name = currentLang === 'ar' ? cat.name : (cat.name_en || cat.name);
+        return `
+            <div class="nav-item ${cat.id === currentCat ? 'active' : ''}" data-id="${cat.id}">
+                <span class="label">${name}</span>
+                <div class="icon-box">${cat.icon || '📂'}</div>
+            </div>
         `;
-        container.appendChild(btn);
+    }).join('');
 
-        // Auto-scroll to active tab
-        if (isActive) {
-            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => switchCategory(item.dataset.id));
     });
 }
 
-function updateCategoryHeader() {
-    const cat = categories.find(c => c.id === selectedCategoryId);
-    if (!cat) return;
+function switchCategory(catId) {
+    if (currentCat === catId) return;
+    currentCat = catId;
 
-    const bgTitle = document.getElementById('bgCatTitle');
-    const headerIcon = document.getElementById('headerIcon');
-    const arName = document.getElementById('selectedCatArName');
+    // Smooth transition
+    renderNav();
+    renderItems();
 
-    bgTitle.textContent = (cat.name_en || cat.name).toUpperCase();
-    headerIcon.textContent = cat.icon || '📂';
-    arName.textContent = currentLang === 'ar' ? cat.name : (cat.name_en || cat.name);
+    // Scroll selected item into view
+    const activeItem = document.querySelector(`.nav-item[data-id="${catId}"]`);
+    if (activeItem) {
+        activeItem.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
 }
 
-function renderProducts() {
-    const container = document.getElementById('productsGrid');
-    const filtered = products.filter(p => p.category_id === selectedCategoryId);
+function renderItems() {
+    const catData = CATEGORIES.find(c => c.id === currentCat);
+    if (!catData) return;
 
-    // Add animation class
-    container.classList.remove('animate-in');
-    void container.offsetWidth; // trigger reflow
-    container.classList.add('animate-in');
+    const catName = currentLang === 'ar' ? catData.name : (catData.name_en || catData.name);
+    document.getElementById('activeCatTitle').innerText = catName;
+    document.getElementById('activeCatIcon').innerText = catData.icon || '📂';
+    document.getElementById('bgCategoryTitle').innerText = catName.toUpperCase();
 
-    if (filtered.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center; padding: 4rem 1rem; opacity: 0.3;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🍽️</div>
-                <div style="text-transform: uppercase; letter-spacing: 0.2em;">
-                    ${currentLang === 'ar' ? 'قريباً في القائمة' : 'Coming Soon'}
-                </div>
+    const items = ALL_PRODUCTS.filter(i => i.category_id === currentCat);
+
+    if (items.length === 0) {
+        menuGrid.innerHTML = `
+            <div class="py-24 text-center opacity-40 uppercase tracking-widest text-sm">
+                ${currentLang === 'ar' ? 'قريباً في القائمة' : 'Coming Soon'}
             </div>
         `;
         return;
     }
 
-    container.innerHTML = '';
-    filtered.forEach((product, idx) => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.style.animationDelay = `${idx * 0.05}s`;
-        card.onclick = () => showProductDetails(product);
+    menuGrid.innerHTML = items.map((item, idx) => {
+        const name = currentLang === 'ar' ? item.name : (item.name_en || item.name);
+        const desc = currentLang === 'ar' ? (item.description || '') : (item.description_en || item.description || '');
+        const currency = currentLang === 'ar' ? 'ج.م' : 'EGP';
 
-        const name = currentLang === 'ar' ? product.name : (product.name_en || product.name);
-        const desc = currentLang === 'ar' ? (product.description || '') : (product.description_en || product.description || '');
-
-        card.innerHTML = `
-            <div class="product-card-content">
-                <div class="product-info">
-                    <div>
-                        <div class="product-title">${name}</div>
-                        <div class="product-description">${desc}</div>
+        return `
+            <div class="product-card h-40 rounded-[2rem] overflow-hidden bg-[#161616] border border-white/5 active:scale-[0.97] transition-all cursor-pointer shadow-2xl relative" 
+                 onclick="openProductDetails('${item.id}')">
+                <div class="absolute inset-0 flex ${currentLang === 'ar' ? 'flex-row-reverse' : 'flex-row'}">
+                    <div class="flex-1 p-6 flex flex-col justify-between z-10 relative">
+                        <div>
+                            <h4 class="text-lg font-black leading-tight">${name}</h4>
+                            <p class="text-white/30 text-[10px] line-clamp-2 mt-1 font-medium leading-relaxed">${desc}</p>
+                        </div>
+                        <div class="text-xl font-black text-[#EAB308]">
+                            ${item.price} 
+                            <span class="text-[10px] opacity-40 uppercase">${currency}</span>
+                        </div>
                     </div>
-                    <div class="product-price-tag">
-                        ${product.price} <small>${currentLang === 'ar' ? 'ج.م' : 'EGP'}</small>
+                    <div class="w-[45%] relative">
+                        <img src="${item.image || '../assets/images/placeholder.png'}" class="w-full h-full object-cover grayscale-[0.2]" alt="${name}">
+                        <div class="absolute inset-0 ${currentLang === 'ar' ? 'card-mask-rtl' : 'card-mask-ltr'}"></div>
                     </div>
-                </div>
-                <div class="product-image-container">
-                    <img src="${product.image || '../assets/images/placeholder.png'}" alt="${name}">
-                    <div class="product-image-overlay"></div>
                 </div>
             </div>
         `;
-        container.appendChild(card);
+    }).join('');
+}
+
+function setupNavInteraction() {
+    let isScrolling;
+    navWrapper.addEventListener('scroll', () => {
+        window.clearTimeout(isScrolling);
+        isScrolling = setTimeout(() => {
+            const wrapperRect = navWrapper.getBoundingClientRect();
+            const centerX = wrapperRect.left + wrapperRect.width / 2;
+            let closestId = currentCat;
+            let minDistance = Infinity;
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const distance = Math.abs(centerX - (rect.left + rect.width / 2));
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestId = item.dataset.id;
+                }
+            });
+
+            if (closestId && closestId !== currentCat) {
+                switchCategory(closestId);
+            }
+        }, 150);
     });
 }
 
-// ==================== Actions ====================
+// --- UI INTERACTION ---
 
-function switchCategory(id) {
-    if (selectedCategoryId === id) return;
-    selectedCategoryId = id;
-    renderMenu();
-}
+window.openProductDetails = function (id) {
+    const item = ALL_PRODUCTS.find(i => i.id === id);
+    if (!item) return;
 
-function showProductDetails(product) {
-    const modal = document.getElementById('productModal');
-    const cat = categories.find(c => c.id === product.category_id);
+    const cat = CATEGORIES.find(c => c.id === item.category_id);
+    const currency = currentLang === 'ar' ? 'ج.م' : 'EGP';
 
-    document.getElementById('modalProductImage').src = product.image || '../assets/images/placeholder.png';
-    document.getElementById('modalCategoryName').textContent = currentLang === 'ar' ? (cat?.name || '') : (cat?.name_en || cat?.name || '');
-    document.getElementById('modalProductName').textContent = currentLang === 'ar' ? product.name : (product.name_en || product.name);
-    document.getElementById('modalProductDesc').textContent = currentLang === 'ar' ? (product.description || '') : (product.description_en || product.description || '');
-    document.getElementById('modalProductPrice').textContent = product.price;
-    document.getElementById('currencyLabel').textContent = currentLang === 'ar' ? 'ج.م' : 'EGP';
-    document.getElementById('orderBtn').textContent = currentLang === 'ar' ? 'إضافة للطلب' : 'Add to Order';
+    document.getElementById('modalImg').src = item.image || '../assets/images/placeholder.png';
+    document.getElementById('modalTitle').innerText = currentLang === 'ar' ? item.name : (item.name_en || item.name);
+    document.getElementById('modalCat').innerText = currentLang === 'ar' ? (cat?.name || '') : (cat?.name_en || cat?.name || '');
+    document.getElementById('modalDesc').innerText = currentLang === 'ar' ? (item.description || '') : (item.description_en || item.description || '');
+    document.getElementById('modalPrice').innerText = item.price;
+    document.getElementById('currencyLabel').innerText = currency;
+    document.getElementById('orderBtn').innerText = currentLang === 'ar' ? 'إضافة للطلب' : 'Add to Order';
 
-    modal.classList.add('active');
+    productModal.classList.remove('hidden-state');
     document.body.style.overflow = 'hidden';
-}
+};
 
 window.closeModal = function () {
-    const modal = document.getElementById('productModal');
-    modal.classList.remove('active');
+    productModal.classList.add('hidden-state');
     document.body.style.overflow = '';
 };
 
-function setupEventListeners() {
-    // Language Toggle
-    document.getElementById('langToggle').addEventListener('click', () => {
-        currentLang = currentLang === 'ar' ? 'en' : 'ar';
-        updateThemeAndMeta();
-        renderMenu();
-    });
+langToggle.addEventListener('click', () => {
+    currentLang = currentLang === 'ar' ? 'en' : 'ar';
+    updateGlobalText();
+    renderNav();
+    renderItems();
+});
 
-    // Close modal on escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
-}
+// Close modal on escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});

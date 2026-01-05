@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">LA CASA - المنيو الإلكتروني</title>
+    <title id="pageTitle">LA CASA - Digital Menu</title>
 
-    <!-- Fonts -->
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@400;700;900&display=swap"
         rel="stylesheet">
@@ -16,82 +17,85 @@
     <link rel="stylesheet" href="../assets/css/menu.css">
 </head>
 
-<body>
-    <!-- Ambient Background -->
-    <div class="ambient-background">
-        <div class="glow-top"></div>
-        <div class="glow-bottom"></div>
-    </div>
+<body class="antialiased">
+
+    <!-- Background Elements -->
+    <div class="bg-glow top-[-10%] left-[-10%]"></div>
+    <div class="bg-glow bottom-[-10%] right-[-10%]"></div>
 
     <!-- Header -->
-    <header class="menu-header">
-        <div class="brand-section">
-            <h1 id="restaurantName">LA CASA</h1>
-            <span id="subBrand">Pizza & Specialty Coffee</span>
+    <header class="fixed top-0 left-0 right-0 z-40 p-6 flex justify-between items-center bg-black/50 backdrop-blur-md">
+        <div class="flex flex-col">
+            <h1 id="brandName" class="text-2xl font-black tracking-tighter text-[#EAB308]">لا كازا</h1>
+            <span id="brandSub" class="text-[10px] uppercase tracking-[0.2em] text-white/50">بيتزا وقهوة مختصة</span>
         </div>
-        <button class="lang-toggle" id="langToggle">ENGLISH</button>
+        <button id="langToggle"
+            class="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest transition-colors active:scale-95">
+            English
+        </button>
     </header>
 
-    <!-- Main Content Stage -->
-    <main class="menu-main">
-        <!-- Category Transition Scene -->
-        <div id="categoryScene">
-            <div class="category-header">
-                <div class="category-title-bg" id="bgCatTitle">COFFEE</div>
-                <div class="category-icon" id="headerIcon">☕</div>
-                <h3 class="category-name" id="selectedCatArName">قهوة</h3>
+    <!-- Main Content -->
+    <main class="relative pt-32 pb-64 px-6 max-w-md mx-auto">
+        <!-- Category Title Header -->
+        <div id="categoryHeader" class="relative mb-8 text-center transition-opacity duration-300">
+            <h2 id="bgCategoryTitle"
+                class="text-5xl font-black opacity-[0.03] absolute top-1/2 -translate-y-1/2 left-0 right-0 overflow-hidden whitespace-nowrap select-none">
+            </h2>
+            <div class="flex flex-col items-center gap-1 relative z-10">
+                <span id="activeCatIcon" class="text-4xl"></span>
+                <h3 id="activeCatTitle" class="text-2xl font-black text-[#EAB308]"></h3>
             </div>
+        </div>
 
-            <!-- Products Grid -->
-            <div class="products-grid" id="productsGrid">
-                <!-- Products will be injected here -->
-                <div class="spinner"></div>
-            </div>
+        <!-- Items Container -->
+        <div id="menuGrid" class="grid gap-6">
+            <div class="spinner"></div>
         </div>
     </main>
 
-    <!-- Radial Arc Bottom Navigation -->
-    <div class="bottom-nav-container">
-        <!-- The Arc Visual -->
-        <div class="radial-arc"></div>
-
-        <!-- Dial Wrapper -->
-        <div class="dial-wrapper">
-            <div class="dial-items" id="tabsContainer">
-                <!-- Tabs will be injected here -->
-            </div>
+    <!-- Radial Arc Navigation -->
+    <div class="radial-container">
+        <div class="arc-visual"></div>
+        <div id="navWrapper" class="nav-wrapper">
+            <!-- Nav items injected by JS -->
         </div>
-
-        <!-- Selection Glow -->
-        <div class="selection-glow"></div>
-    </div>
-
-    <!-- Premium Product Detail Modal -->
-    <div class="detail-modal" id="productModal">
-        <div class="modal-image-stage">
-            <img id="modalProductImage" src="" alt="">
-            <div
-                style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2), #000);">
-            </div>
-        </div>
-
-        <div class="modal-content-stage">
-            <button class="modal-close-btn" onclick="closeModal()">✕</button>
-
-            <span class="modal-badge" id="modalCategoryName">CATEGORY</span>
-            <h2 class="modal-title" id="modalProductName">PRODUCT NAME</h2>
-            <p class="modal-description" id="modalProductDesc">Product description goes here.</p>
-
-            <div class="modal-price-val">
-                <span id="modalProductPrice">100</span>
-                <small id="currencyLabel">ج.م</small>
-            </div>
-
-            <button class="add-to-cart-btn" id="orderBtn">إضافة للطلب</button>
+        <!-- Selection Glow Indicator -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-16 h-1 bg-[#EAB308] rounded-full blur-sm opacity-50">
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="fixed inset-0 z-[100] bg-black hidden-state flex flex-col">
+        <div id="modalHero" class="absolute inset-0 h-[65%] overflow-hidden">
+            <img id="modalImg" src="" class="w-full h-full object-cover opacity-60" alt="">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black"></div>
+        </div>
+
+        <div class="relative z-10 flex-1 flex flex-col justify-end p-8 pb-12">
+            <button onclick="closeModal()"
+                class="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20 text-white transition-all active:scale-90">
+                ✕
+            </button>
+
+            <div class="animate-content">
+                <span id="modalCat"
+                    class="text-[#EAB308] font-black text-xs uppercase tracking-[0.3em] block mb-3"></span>
+                <h2 id="modalTitle" class="text-4xl font-black mb-4"></h2>
+                <p id="modalDesc" class="text-white/50 text-base leading-relaxed mb-8 max-w-sm"></p>
+                <div class="text-4xl font-black text-[#EAB308] mb-8">
+                    <span id="modalPrice"></span> <span class="text-sm opacity-50" id="currencyLabel">ر.س</span>
+                </div>
+                <button
+                    class="w-full h-16 rounded-2xl bg-[#EAB308] text-black font-black flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                    id="orderBtn">
+                    إضافة للطلب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../config/supabase.js"></script>
 
@@ -101,6 +105,7 @@
     <script src="../assets/js/services/category.service.js"></script>
     <script src="../assets/js/services/product.service.js"></script>
 
+    <!-- Main Logic -->
     <script src="../assets/js/menu.js"></script>
 </body>
 
